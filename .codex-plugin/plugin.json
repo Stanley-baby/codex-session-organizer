@@ -1,0 +1,28 @@
+{
+  "name": "codex-session-organizer",
+  "version": "0.1.0",
+  "description": "Name new Codex chats once and organize them into your sidebar sections.",
+  "author": {
+    "name": "Stanley-baby"
+  },
+  "license": "MIT",
+  "homepage": "https://github.com/Stanley-baby/codex-session-organizer",
+  "repository": "https://github.com/Stanley-baby/codex-session-organizer",
+  "skills": "./skills/",
+  "hooks": "./hooks/hooks.json",
+  "interface": {
+    "displayName": "Codex Session Organizer",
+    "shortDescription": "新会话一次命名，自动归入自选分区",
+    "developerName": "Stanley-baby",
+    "category": "Productivity",
+    "defaultPrompt": [
+      "初始化 Codex 会话整理插件。",
+      "检查 Codex 会话整理插件是否正常。"
+    ]
+  },
+  "extensions": {
+    "com.openai": {
+      "onboardingSkill": "./skills/setup/SKILL.md"
+    }
+  }
+}

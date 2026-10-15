@@ -1,0 +1,213 @@
+# Codex Session Organizer
+
+**让新会话有个好名字，也有个固定位置。**
+
+面向 **macOS Codex 桌面端**的轻量插件：首次完成实质任务时，把新会话命名为「主题对象｜持续目标」，归入你选择的侧栏分区；后续追问沿用标题和位置。
+
+[MIT License](LICENSE) · [安装与初始化](#安装) · [工作原理](#工作原理) · [故障排查](#故障排查)
+
+## 效果示例
+
+以下全部是虚构示例，不是实际用户会话：
+
+| 用户在做什么 | 标题示例 | 分区示例 |
+| --- | --- | --- |
+| 排查插件，接着修复、测试 | 会话插件｜稳定命名与分类 | 开发工具 |
+| 写产品文案，接着改版、交付 | 产品文案｜发布内容打磨 | 内容创作 |
+| 阅读论文，接着整理笔记 | 检索增强｜原理与实践 | 学习研究 |
+
+标题目标不超过 24 个字符。分类名称和归属说明由你决定，插件不硬编码你的公司、品牌或侧栏 ID。
+
+## 它做什么
+
+- **一次整理**：命名和分区分别记录完成状态，后续追问不再自动调整已完成项。
+- **真实回读**：工具返回成功还不够，必须从原生侧栏回读到目标值才记录成功。
+- **保留人为选择**：保留已观察到的手动改名、自定义分区、项目分区和置顶状态。用户明确的新要求优先。
+- **只接管新会话**：按首次初始化时间过滤 UUIDv7 创建时间，历史会话不批量处理。
+- **本地状态**：Python 标准库、原子写入、文件锁；不需要 API Key、后台服务或第三方接口。
+
+## 支持范围
+
+| 项目 | v0.1.0 |
+| --- | --- |
+| 平台 | macOS Codex 桌面端 |
+| 前提 | 支持插件 Hooks，并暴露原生会话/侧栏管理工具 |
+| 命令行安装工具 | `codex plugin marketplace add`、`codex plugin add` |
+| Python | 3.9+；自动从 PATH 和常见 macOS 路径查找 |
+| 已验证客户端 | codex-cli `0.162.0-alpha.17.2`；详情见 [验证说明](docs/verification.md) |
+| Windows / Linux / CLI 内的侧栏整理 | 尚未验收，不作为本版支持能力 |
+
+这不是独立的聊天列表应用。原生工具缺失时，正常用户任务继续，整理要求被跳过。本项目与 OpenAI 无隶属关系。
+
+打包使用官方仍支持的 `.codex-plugin/plugin.json` 格式。发布前实测发现，当前受测客户端加载根目录 portable manifest 时没有发现 Hook，因此本版不同时放置根目录 `plugin.json`，避免已安装却不执行的情况。
+
+## 安装
+
+先在终端确认 `codex --version` 和 `python3 --version` 可运行，然后复制：
+
+```sh
+codex plugin marketplace add Stanley-baby/codex-session-organizer --ref v0.1.0
+codex plugin add codex-session-organizer@codex-session-organizer
+```
+
+安装源固定到首个版本标签，便于复现。插件通过 GitHub marketplace 分发，**不是官方公共插件目录的已审核上架项目**。
+
+### 初始化
+
+打开 Codex 桌面端，在插件设置中运行 Setup，或在会话中选择本插件的 `session-organizer-setup` 技能，发送：
+
+```text
+请使用 Codex Session Organizer 的设置技能初始化。
+先读取我的侧栏，与我确认分区名称和归属描述，再复用或创建分区。
+只整理初始化之后的新会话，保留历史会话、项目和置顶状态。
+设置完成后告诉我如何审核两个 Hook，并进行两轮真实输入验收。
+```
+
+设置技能会：
+
+1. 检查 Python、本地状态及旧版 Hook 冲突。
+2. 和你确认分类，例如「工作项目、内容创作、开发工具、学习研究」。
+3. 通过原生侧栏工具查出真实 ID；缺少分区时经你同意后创建。
+4. 保存本机配置和首次接管时间。
+5. 提醒你在 Codex 的 **`/hooks`** 中审核并信任本插件的 `UserPromptSubmit` 和 `PostToolUse` 两个 Hook。
+
+**安装/启用不等于已信任 Hook。** 插件不代写信任记录。必要时在保存工作后重开桌面应用，再新建会话测试。
+
+### 两轮验收
+
+初始化会话在接管时间之前创建，所以请**另开一个新会话**：
+
+1. 直接在输入框发送一项真实任务，例如「给我三条 Codex 多会话管理建议，每条不超过 20 字」。任务完成后查看标题和分区。
+2. 在同一个会话直接追问「把第一条改得更口语化，其他保持不变」。确认只修改回答，标题和分区保持不变。
+
+经另一个会话工具转发的消息，不等同于用户在输入框直接发送的消息；不可用它替代这项验收。
+
+## 配置、诊断与暂停
+
+日常直接告诉设置技能「检查插件」「暂停自动整理」「恢复自动整理」「调整分类」即可。调整分类不会重置首次接管时间，也不会重新整理已完成的会话。
+
+高级用户可在插件根目录调用管理脚本。以下命令的当前目录应是插件根目录：
+
+```sh
+sh scripts/python.sh scripts/manage.py doctor
+sh scripts/python.sh scripts/manage.py pause
+sh scripts/python.sh scripts/manage.py resume
+```
+
+`doctor` 检查本地前提；它不会把未检查的 Hook 信任或原生工具可用性报告为通过。
+
+手动初始化可运行 `sh scripts/python.sh scripts/manage.py init mapping.json`；`mapping.json` 内容如下。**请先用原生侧栏回读，将示例 ID 替换为自己机器上的真实 ID**：
+
+```json
+{
+  "sections": [
+    {"name": "开发工具", "id": "YOUR_REAL_SECTION_ID", "description": "软件、插件、脚本和开发环境"},
+    {"name": "学习研究", "id": "YOUR_OTHER_SECTION_ID", "description": "独立调研、知识学习和阅读笔记"}
+  ]
+}
+```
+
+配置保存在 `${CODEX_HOME:-$HOME/.codex}/state/codex-session-organizer/settings.json`，同目录每个新会话一个状态文件。首次写入目录权限 700、文件权限 600。不要把整个状态目录提交到仓库。
+
+为跨版本保留“已整理”状态，数据使用上述固定目录，而不是版本化的插件缓存。卸载/重装和升级时保留此目录；删除它再初始化会重设接管边界。脚本尊重 `CODEX_HOME`，便于隔离测试。
+
+## 更新
+
+先阅读目标版本的 Release Notes。将安装源切到你选定的版本标签，再刷新该插件，例如仍使用当前版本时：
+
+```sh
+codex plugin marketplace add Stanley-baby/codex-session-organizer --ref v0.1.0
+codex plugin marketplace upgrade codex-session-organizer
+codex plugin add codex-session-organizer@codex-session-organizer
+```
+
+今后升级时将标签换成实际发布的新版本。保留本地状态目录，在 `/hooks` 检查更新后的定义是否需要重新审核。不要直接改插件缓存内的源码；更新可能覆盖缓存。
+
+## 卸载与回退
+
+先让设置技能暂停本插件，然后：
+
+```sh
+codex plugin remove codex-session-organizer@codex-session-organizer
+```
+
+如果也要移除安装源，再执行：
+
+```sh
+codex plugin marketplace remove codex-session-organizer
+```
+
+卸载保留本地状态、会话标题、分区及历史；不会自动把已整理的会话搬回去。若需要还原标题和分区，可发给设置技能：
+
+```text
+请读取 Codex Session Organizer 的本地状态，列出它已确认修改的会话、原始标题和原始分区。
+先给我预览，由我选择恢复哪些项，再通过原生会话工具逐项恢复并回读。
+保留我之后的手动修改；不要直接写聊天数据库，不要移动项目。
+```
+
+卸载后技能随插件一起移除；如需侧栏还原，请先预览/还原再卸载，或把上述任务交给仍可使用原生工具的 Codex 会话。
+
+### 从个人内联 Hook 版本迁移
+
+本项目的前身可能在用户配置中直接注册 `session_organizer.py`。为避免两个整理器同时运行，管理脚本检测到旧版注册时拒绝初始化新插件。
+
+1. 保留已工作的旧版及其回退备份。
+2. 按旧版自己的卸载/回退说明，仅移除旧版的两条 Hook；保留其他插件、信任设置及历史。
+3. 再初始化并信任本插件，验收新建会话。
+4. 新版首次接管时间从本次初始化开始，不导入旧版的私人会话记录。
+
+若新版验收失败，暂停/卸载新版，再按旧版说明恢复；不要同时启用两套 Hook。
+
+## 工作原理
+
+```text
+用户直接输入
+    ↓ UserPromptSubmit
+按首次初始化时间识别新会话 → 仅为未完成项补充管理提示
+    ↓ Codex 正常完成用户任务
+原生工具命名 / 分区
+    ↓ PostToolUse
+list_threads 回读吻合 → 本地记录已完成
+    ↓ 后续追问
+已完成项不再自动改动
+```
+
+Hook 提供规则，模型负责语义判断，原生工具执行，回读确认后才记账。它是辅助整理工作流，不是确定性的强制命名器或权限边界。
+
+## 故障排查
+
+| 现象 | 检查项 |
+| --- | --- |
+| 安装后没有动作 | 是否完成初始化；两个 Hook 是否被信任；是否新建于初始化之后；是否直接输入实质任务 |
+| `doctor` 通过但侧栏未变 | 本地检查不覆盖运行时信任/工具；请在桌面新会话检查原生工具并回读 |
+| 环境没有 Python | 安装 Python 3.9+，让桌面应用可找到解释器，保存工作后重开应用 |
+| 只有命名，未完成分区 | 分区 ID 是否仍有效；已有项目分区/置顶会被保留；歧义时保留普通列表 |
+| 暂时未命名 | 问候、澄清、等待材料时暂缓；先完成实质任务 |
+| 再次初始化后旧会话没变化 | 这是设计行为；首次接管时间及已完成状态不会重置 |
+| 检测到旧版冲突 | 按迁移段落处理旧版 Hook；脚本不会擅自改用户配置 |
+
+### 已知边界
+
+- UUIDv7 提供新会话创建时间；其他 ID 格式会被跳过，设备时间应正确。分叉/导入若获得新的 UUIDv7，也按新 ID 时间处理。
+- 模型生成的标题、分类可能需要用户纠正；24 字为提示目标，不是字符串截断规则。
+- 第一次侧栏观察之前发生的手动改名，可能没有机器标记；用户明确指定的名称优先，插件不能识别所有 UI 修改竞态。
+- 当前观察按本地 `codex:thread:local:` 侧栏键匹配；远程主机会话不在本版验收范围。
+- Hook 不是所有工具路径的完整覆盖；只有原生回读匹配才标记完成。未回读/失败不会宣称成功，也不无限重试。
+- 分区被删除或重命名后，请重新运行设置技能更新映射。
+
+## 开发
+
+无需运行时第三方 Python 依赖：
+
+```sh
+python3 -m unittest discover -s tests -v
+sh -n hooks/run.sh scripts/python.sh
+```
+
+测试全部使用合成 ID、临时目录和隔离 `CODEX_HOME`。参见 [验证说明](docs/verification.md)、[贡献说明](CONTRIBUTING.md) 和 [数据说明](PRIVACY.md)。
+
+官方机制参考：[插件打包与 marketplace](https://developers.openai.com/plugins/build/plugins)、[Hooks 事件与信任](https://learn.chatgpt.com/docs/hooks)。
+
+## 许可证
+
+[MIT](LICENSE)，Copyright © 2026 Stanley-baby。

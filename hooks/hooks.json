@@ -1,0 +1,30 @@
+{
+  "hooks": {
+    "UserPromptSubmit": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "sh \"${PLUGIN_ROOT}/hooks/run.sh\"",
+            "timeout": 5,
+            "additionalContextLimit": 12000,
+            "statusMessage": "检查新会话管理状态"
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "(list_threads|set_thread_title|move_thread_to_sidebar_section)$",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "sh \"${PLUGIN_ROOT}/hooks/run.sh\"",
+            "timeout": 5,
+            "statusMessage": "确认会话标题与分区"
+          }
+        ]
+      }
+    ]
+  }
+}

@@ -1,0 +1,12 @@
+{
+  "name": "codex-session-organizer",
+  "interface": {"displayName": "Codex Session Organizer"},
+  "plugins": [
+    {
+      "name": "codex-session-organizer",
+      "source": {"source": "local", "path": "./"},
+      "policy": {"installation": "AVAILABLE", "authentication": "ON_INSTALL"},
+      "category": "Productivity"
+    }
+  ]
+}
