@@ -35,11 +35,11 @@ sh scripts/python.sh scripts/manage.py resume
 
 ## 更新
 
-先阅读目标版本的 Release Notes。将安装源切到你选定的版本标签，再刷新该插件，例如仍使用当前版本时：
+先阅读目标版本的 Release Notes。受测 CLI 将不同固定版本标签视为不同安装源，因此切换版本时先移除同名安装源，再重新添加。下面只更换本插件的源，保留固定状态目录；已有安装可执行：
 
 ```sh
+codex plugin marketplace remove codex-session-organizer
 codex plugin marketplace add Stanley-baby/codex-session-organizer --ref v0.2.0
-codex plugin marketplace upgrade codex-session-organizer
 codex plugin add codex-session-organizer@codex-session-organizer
 ```
 

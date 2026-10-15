@@ -33,7 +33,7 @@ codex plugin marketplace add Stanley-baby/codex-session-organizer --ref v0.2.0
 codex plugin add codex-session-organizer@codex-session-organizer
 ```
 
-通过 GitHub marketplace 分发，固定到 `v0.2.0` 以便复现；不是官方公共插件目录的已审核上架项目。
+通过 GitHub marketplace 分发，固定到 `v0.2.0` 以便复现；不是官方公共插件目录的已审核上架项目。已有旧版安装请先看[更新步骤](docs/usage.md#更新)。
 
 ### 2. 设置分区，审核 Hooks
 
@@ -83,7 +83,7 @@ codex plugin add codex-session-organizer@codex-session-organizer
 
 ### 更新
 
-按[更新步骤](docs/usage.md#更新)切换版本并刷新插件；保留状态目录，在 `/hooks` 检查更新后的定义是否需要重新审核。
+当前 CLI 切换固定版本时需先移除同名安装源再重新添加；按[更新步骤](docs/usage.md#更新)操作，保留状态目录，在 `/hooks` 检查更新后的定义是否需要重新审核。
 
 ### 卸载与回退
 
