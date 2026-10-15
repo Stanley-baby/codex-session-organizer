@@ -222,7 +222,7 @@ class AdaptiveTitleTests(HookFixture):
     def test_manual_change_after_management_locks_title(self):
         self.seed_confirmed(); self.call(turn='t2'); self.snapshot(title='我指定的标题', section='dev')
         self.assertTrue(self.state()['title_preserved'])
-        self.assertEqual(self.call(turn='t3'), '')
+        self.assertNotIn('本轮评估', self.call(turn='t3'))
         self.tool('set_thread_title', {'title': '插件｜其他目标'})
         self.assertNotIn('pending_title', self.state())
 
@@ -231,7 +231,7 @@ class AdaptiveTitleTests(HookFixture):
         self.tool('set_thread_title', {'title': '自定｜我的标题'})
         self.snapshot(title='自定｜我的标题', section='dev')
         self.assertTrue(self.state()['title_preserved'])
-        self.assertEqual(self.call(turn='t3'), '')
+        self.assertNotIn('本轮评估', self.call(turn='t3'))
 
     def test_explicit_unlock_adopts_observed_title(self):
         self.seed_confirmed(); self.call(turn='t2'); self.snapshot(title='自定｜我的目标', section='dev')
@@ -258,7 +258,14 @@ class AdaptiveTitleTests(HookFixture):
 
     def test_v010_preserved_title_remains_protected(self):
         (self.root / (SID + '.json')).write_text(json.dumps({'title_done': True, 'title_preserved': True, 'section_done': True}))
-        self.assertEqual(self.call(turn='upgrade'), '')
+        self.assertNotIn('本轮评估', self.call(turn='upgrade'))
+
+    def test_protected_title_can_discover_explicit_resume_without_setup_skill(self):
+        self.seed_confirmed(); self.control('--lock-title')
+        out = self.call(turn='t2')
+        self.assertIn('--unlock-title', out)
+        self.assertIn('用户未要求恢复时，不调用这些管理工具', out)
+        self.assertNotIn('目标校准', out.split('正常完成用户任务')[0])
 
     def test_guidance_distinguishes_goal_from_steps_and_manual_titles(self):
         self.seed_confirmed()

@@ -140,6 +140,10 @@ def guidance(sid, state, settings):
     keep_command = shlex.join([sys.executable, str(Path(__file__).resolve()), '--keep-unclassified', sid])
     lock_command = shlex.join([sys.executable, str(Path(__file__).resolve()), '--lock-title', sid])
     unlock_command = shlex.join([sys.executable, str(Path(__file__).resolve()), '--unlock-title', sid])
+    if state.get('title_preserved') and state.get('section_done'):
+        return f'''[当前会话 {sid} 的标题已保护，分区已完成]
+正常完成用户任务，保留当前标题与分区，不自动校准或改名。
+只有用户明确要求恢复自动目标校准时，先调用 list_threads(limit=50) 回读当前标题，再运行 {unlock_command}。用户未要求恢复时，不调用这些管理工具。'''
     pending = '、'.join(x for x, needed in [('目标校准' if state.get('title_done') else '首次命名', review_title(state)),
                                        ('首次分区', not state.get('section_done'))] if needed)
     managed = json.dumps(state.get('managed_title'), ensure_ascii=False)
@@ -205,7 +209,7 @@ def main():
             if data.get('turn_id') != state.get('turn_id'):
                 clear_pending_title(state)
             state['turn_id'] = data.get('turn_id')
-            if review_title(state) or not state.get('section_done'):
+            if review_title(state) or state.get('title_preserved') or not state.get('section_done'):
                 print(json.dumps({'hookSpecificOutput': {'hookEventName': 'UserPromptSubmit',
                                                        'additionalContext': guidance(sid, state, settings)}}, ensure_ascii=False))
         elif data.get('hook_event_name') == 'PostToolUse' and state.get('turn_id') and data.get('turn_id') == state['turn_id']:
