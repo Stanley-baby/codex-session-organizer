@@ -273,6 +273,26 @@ class AdaptiveTitleTests(HookFixture):
         for rule in ('整段会话主线', '普通补充', '临时支线', '左侧主题对象保持不变', '--lock-title', '--unlock-title'):
             self.assertIn(rule, out)
 
+    def test_initial_goal_describes_result_not_latest_step(self):
+        out = self.call()
+        for rule in ('最终希望达成的具体结果或交付物', '不是最后一条消息的缩写',
+                     '不推断用户尚未提出或认可的更大目标'):
+            self.assertIn(rule, out)
+
+    def test_goal_review_requires_old_title_to_misrepresent_mainline(self):
+        self.seed_confirmed()
+        out = self.call(turn='t2')
+        for rule in ('只要仍在推进原目标，就保持标题', '导致旧标题明显失真时',
+                     '新主线必须有明确的会话依据', '不仅为措辞更漂亮而改名'):
+            self.assertIn(rule, out)
+        self.assertIn('无需用户说出', out)
+
+    def test_core_repair_can_be_goal_without_verb_blacklist(self):
+        out = self.call()
+        self.assertIn('若本身就是会话要解决的核心结果，可作为持续目标', out)
+        self.assertIn('不按动词机械判断', out)
+        self.assertNotIn('改措辞、修复、测试、交付步骤和临时支线不触发改名', out)
+
 
 if __name__ == '__main__':
     unittest.main()

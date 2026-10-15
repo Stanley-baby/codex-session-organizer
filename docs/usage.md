@@ -39,7 +39,7 @@ sh scripts/python.sh scripts/manage.py resume
 
 ```sh
 codex plugin marketplace remove codex-session-organizer
-codex plugin marketplace add Stanley-baby/codex-session-organizer --ref v0.2.0
+codex plugin marketplace add Stanley-baby/codex-session-organizer --ref v0.2.1
 codex plugin add codex-session-organizer@codex-session-organizer
 ```
 
@@ -82,7 +82,7 @@ codex plugin marketplace remove codex-session-organizer
 
 ## 支持范围
 
-| 项目 | v0.2.0 |
+| 项目 | v0.2.1 |
 | --- | --- |
 | 平台 | macOS Codex 桌面端 |
 | 前提 | 支持插件 Hooks，并暴露原生会话/侧栏管理工具 |
@@ -118,7 +118,13 @@ codex plugin marketplace remove codex-session-organizer
 
 ## 持续目标校准
 
-从 v0.2.0 起，首次命名后仍会在每轮实质任务完成时评估主线，只有长期目标明确扩大、转向或过时才更新右侧。普通追问、修复、测试和临时支线保持不变；分区仍为一次确认。
+从 v0.2.0 起，首次命名后仍会在每轮实质任务完成时评估主线。v0.2.1 将持续目标明确为“本会话最终要达成的具体结果或交付物”，而不是最后一条消息的缩写或当前步骤。
+
+只要本轮仍在服务原目标，就保持标题。只有主线明确转向、交付范围实质扩大或原目标被取代，导致旧标题明显失真，才更新右侧；不要求用户说出固定口令，但新主线必须有明确会话依据。临时支线、阶段变化和单纯润色不触发改名，不推断用户未提出或认可的更大目标。修复、测试、设计可作为核心结果，也可能只是推进步骤，按角色判断，不按动词机械分类。分区仍为一次确认。
+
+例如：“建立会话自动整理机制”之下的规则修改、README 美化和补测试，仍保持原目标；用户决定交付可供他人安装的开源产品、旧目标已不足以概括时，才更新为“交付可安装的开源整理器”。如果会话本来就为解决登录闪退，“解决登录闪退”本身就是合理目标。
+
+自然转向验收示例：在个人会话管理建议的会话中继续说“我们要让整个团队都用这套办法，请给出统一命名、责任分工和交接记录的协作规范”。检查模型是否依据会话判断新主线，而非依赖“目标改变”口令；随后要求改措辞，应保持新标题。这是建议验收步骤，不是已通过的语义测试记录。
 
 升级复用 v0.1.0 的 `managed_title` 与完成状态，不清空数据、不重置首次接管时间。已有自动管理的会话在后续直接输入时参与校准；历史排除与已保护标题继续生效。
 
