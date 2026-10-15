@@ -1,7 +1,7 @@
 {
   "name": "codex-session-organizer",
-  "version": "0.1.0",
-  "description": "Name new Codex chats once and organize them into your sidebar sections.",
+  "version": "0.2.0",
+  "description": "Keep Codex chat titles stable while adapting their goals when the conversation changes.",
   "author": {
     "name": "Stanley-baby"
   },
@@ -12,7 +12,7 @@
   "hooks": "./hooks/hooks.json",
   "interface": {
     "displayName": "Codex Session Organizer",
-    "shortDescription": "新会话一次命名，自动归入自选分区",
+    "shortDescription": "稳定命名，持续校准目标，归入自选分区",
     "developerName": "Stanley-baby",
     "category": "Productivity",
     "defaultPrompt": [

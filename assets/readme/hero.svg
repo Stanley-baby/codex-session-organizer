@@ -1,0 +1,29 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="550" viewBox="0 0 1200 550" role="img" aria-labelledby="title desc">
+  <title id="title">Codex Session Organizer — 稳定命名，目标校准</title>
+  <desc id="desc">机制示意，非真实截图：新会话归入开发工具分区，命名为“会话插件｜稳定命名与分类”；普通追问保持；长期目标实质变化时只更新右侧目标，分区保持。用于 macOS Codex 桌面端。</desc>
+  <rect width="1200" height="550" rx="24" fill="#14251E"/>
+  <g font-family="-apple-system, BlinkMacSystemFont, Segoe UI, PingFang SC, sans-serif">
+    <g id="identity">
+      <path d="M64 45h28M64 45v28M76 59h16M76 71h16" fill="none" stroke="#A8D5B5" stroke-width="3" stroke-linecap="round"/>
+      <text x="110" y="67" font-size="22" fill="#B6C4BA">macOS · Codex 桌面插件</text>
+      <text x="64" y="147" font-size="64" font-weight="650" letter-spacing="-1.7" fill="#F3F6EF">Codex Session Organizer</text>
+      <text x="64" y="219" font-size="46" font-weight="600" fill="#A8D5B5">稳定命名，目标校准。</text>
+      <text x="64" y="270" font-size="28" fill="#B6C4BA">每轮评估；普通追问不改名，主线变化再更新目标。</text>
+    </g>
+    <g id="sidebar-specimen">
+      <rect x="64" y="310" width="1072" height="116" rx="12" fill="#21362B"/>
+      <circle cx="93" cy="347" r="5" fill="#A8D5B5"/>
+      <text x="114" y="355" font-size="26" font-weight="550" fill="#A8D5B5">开发工具</text>
+      <path d="M93 362v29h24" fill="none" stroke="#A8D5B5" stroke-width="2" stroke-linecap="round"/>
+      <text x="132" y="400" font-size="32" fill="#F3F6EF">会话插件｜稳定命名与分类</text>
+      <path d="m944 370 8 8 16-18" fill="none" stroke="#A8D5B5" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+      <text x="984" y="379" font-size="26" fill="#A8D5B5">回读确认</text>
+    </g>
+    <g id="followup-state">
+      <text x="64" y="476" font-size="28" fill="#B6C4BA">主线发生变化</text>
+      <path d="M264 466h44m-8-8 8 8-8 8" fill="none" stroke="#A8D5B5" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+      <text x="332" y="476" font-size="28" fill="#F3F6EF">只更新右侧持续目标</text>
+      <text x="64" y="519" font-size="20" fill="#B6C4BA">机制示意 · 虚构会话 · 非真实截图</text>
+    </g>
+  </g>
+</svg>

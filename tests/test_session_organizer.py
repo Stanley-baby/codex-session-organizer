@@ -12,7 +12,7 @@ SID = str(uuid.UUID(int=(1800000000000 << 80) | (7 << 76) | (2 << 62) | 1))
 OTHER = str(uuid.UUID(int=(1800000000000 << 80) | (7 << 76) | (2 << 62) | 2))
 
 
-class HookTests(unittest.TestCase):
+class HookFixture(unittest.TestCase):
     def setUp(self):
         self.tmp = tempfile.TemporaryDirectory()
         self.home = Path(self.tmp.name)
@@ -36,6 +36,7 @@ class HookTests(unittest.TestCase):
         return json.loads((self.root / (sid + '.json')).read_text())
 
     def tool(self, name, args=None, response=None, **extra):
+        extra.setdefault('turn', self.state()['turn_id'])
         self.call('PostToolUse', tool_name='mcp__codex_app__' + name,
                   tool_input=args or {}, tool_response=response if response is not None else {'isError': False}, **extra)
 
@@ -46,6 +47,7 @@ class HookTests(unittest.TestCase):
                 'sections': [{'sectionId': section, 'itemKeys': [key]}] if section else []}
         self.tool('list_threads', response={'isError': False, 'content': [{'type': 'text', 'text': json.dumps(data)}]})
 
+class HookTests(HookFixture):
     def test_first_prompt_has_guidance(self):
         out = json.loads(self.call())
         self.assertIn('主题对象｜持续目标', out['hookSpecificOutput']['additionalContext'])
@@ -81,7 +83,7 @@ class HookTests(unittest.TestCase):
         self.assertTrue(self.state()['title_done']); self.assertTrue(self.state()['section_done'])
         self.assertEqual(self.state()['original_title'], '默认标题')
         self.assertIsNone(self.state()['original_section'])
-        self.assertEqual(self.call(turn='t2'), '')
+        self.assertIn('目标校准', self.call(turn='t2'))
 
     def test_failed_tool_not_recorded(self):
         self.call(); self.snapshot()
@@ -153,6 +155,116 @@ class HookTests(unittest.TestCase):
         self.call(); self.snapshot()
         self.assertNotIn('expires', self.state())
         self.assertEqual((self.root / (SID + '.json')).stat().st_mode & 0o777, 0o600)
+
+
+class AdaptiveTitleTests(HookFixture):
+    def seed_confirmed(self):
+        self.call(); self.snapshot()
+        self.tool('set_thread_title', {'title': '插件｜个人配置'})
+        self.tool('move_thread_to_sidebar_section', {'threadId': SID, 'sectionId': 'dev'})
+        self.snapshot(title='插件｜个人配置', section='dev')
+
+    def control(self, action, ok=True):
+        result = subprocess.run([sys.executable, str(SCRIPT), action, SID], text=True, capture_output=True,
+                                env={**os.environ, 'CODEX_HOME': str(self.home)})
+        self.assertEqual(result.returncode, 0 if ok else 1, result.stderr)
+
+    def test_goal_change_confirmed_after_readback(self):
+        self.seed_confirmed(); self.call(turn='t2'); self.snapshot(title='插件｜个人配置', section='dev')
+        self.tool('set_thread_title', {'title': '插件｜开源交付'})
+        self.assertEqual(self.state()['managed_title'], '插件｜个人配置')
+        self.snapshot(title='插件｜开源交付', section='dev')
+        state = self.state()
+        self.assertEqual(state['managed_title'], '插件｜开源交付')
+        self.assertEqual(state['original_title'], '默认标题')
+        self.assertEqual(state['managed_section'], 'dev')
+        self.assertEqual(state['last_title_update_turn'], 't2')
+        self.assertNotIn('title_preserved', state)
+
+    def test_same_goal_is_noop(self):
+        self.seed_confirmed(); self.call(turn='t2'); self.snapshot(title='插件｜个人配置', section='dev')
+        self.tool('set_thread_title', {'title': '插件｜个人配置'})
+        self.assertNotIn('pending_title', self.state())
+        self.snapshot(title='插件｜个人配置', section='dev')
+        self.assertNotIn('title_preserved', self.state())
+
+    def test_goal_update_requires_current_turn_snapshot(self):
+        self.seed_confirmed(); self.call(turn='t2')
+        self.tool('set_thread_title', {'title': '插件｜开源交付'})
+        self.assertNotIn('pending_title', self.state())
+
+    def test_topic_change_is_not_an_automatic_goal_update(self):
+        self.seed_confirmed(); self.call(turn='t2'); self.snapshot(title='插件｜个人配置', section='dev')
+        self.tool('set_thread_title', {'title': '文案｜开源交付'})
+        self.assertNotIn('pending_title', self.state())
+
+    def test_at_most_one_confirmed_update_per_turn(self):
+        self.seed_confirmed()
+        self.tool('set_thread_title', {'title': '插件｜开源交付'})
+        self.assertNotIn('pending_title', self.state())
+
+    def test_failed_goal_update_does_not_commit(self):
+        self.seed_confirmed(); self.call(turn='t2'); self.snapshot(title='插件｜个人配置', section='dev')
+        self.tool('set_thread_title', {'title': '插件｜开源交付'}, {'isError': True})
+        self.snapshot(title='插件｜个人配置', section='dev')
+        self.assertEqual(self.state()['managed_title'], '插件｜个人配置')
+        self.assertNotIn('pending_title', self.state())
+
+    def test_pending_goal_is_expired_on_next_turn(self):
+        self.seed_confirmed(); self.call(turn='t2'); self.snapshot(title='插件｜个人配置', section='dev')
+        self.tool('set_thread_title', {'title': '插件｜开源交付'})
+        self.call(turn='t3')
+        self.assertNotIn('pending_title', self.state())
+        self.snapshot(title='插件｜开源交付', section='dev')
+        self.assertTrue(self.state()['title_preserved'])
+        self.assertEqual(self.state()['managed_title'], '插件｜个人配置')
+
+    def test_manual_change_after_management_locks_title(self):
+        self.seed_confirmed(); self.call(turn='t2'); self.snapshot(title='我指定的标题', section='dev')
+        self.assertTrue(self.state()['title_preserved'])
+        self.assertEqual(self.call(turn='t3'), '')
+        self.tool('set_thread_title', {'title': '插件｜其他目标'})
+        self.assertNotIn('pending_title', self.state())
+
+    def test_explicit_lock_protects_tool_rename(self):
+        self.seed_confirmed(); self.call(turn='t2'); self.control('--lock-title')
+        self.tool('set_thread_title', {'title': '自定｜我的标题'})
+        self.snapshot(title='自定｜我的标题', section='dev')
+        self.assertTrue(self.state()['title_preserved'])
+        self.assertEqual(self.call(turn='t3'), '')
+
+    def test_explicit_unlock_adopts_observed_title(self):
+        self.seed_confirmed(); self.call(turn='t2'); self.snapshot(title='自定｜我的目标', section='dev')
+        self.control('--unlock-title')
+        self.assertFalse(self.state()['title_preserved'])
+        self.assertEqual(self.state()['managed_title'], '自定｜我的目标')
+        self.assertIn('目标校准', self.call(turn='t3'))
+
+    def test_unlock_without_formatted_readback_fails(self):
+        self.call(); self.control('--lock-title'); self.control('--unlock-title', ok=False)
+        self.assertTrue(self.state()['title_preserved'])
+
+    def test_unlock_requires_current_turn_readback(self):
+        self.seed_confirmed(); self.control('--lock-title'); self.call(turn='t2')
+        self.control('--unlock-title', ok=False)
+        self.assertTrue(self.state()['title_preserved'])
+
+    def test_v010_confirmed_state_is_reviewed_without_reset(self):
+        path = self.root / (SID + '.json')
+        path.write_text(json.dumps({'title_done': True, 'managed_title': '插件｜个人配置',
+                                    'section_done': True, 'managed_section': 'dev', 'last_title': '插件｜个人配置'}))
+        self.assertIn('目标校准', self.call(turn='upgrade'))
+        self.assertEqual(self.state()['managed_section'], 'dev')
+
+    def test_v010_preserved_title_remains_protected(self):
+        (self.root / (SID + '.json')).write_text(json.dumps({'title_done': True, 'title_preserved': True, 'section_done': True}))
+        self.assertEqual(self.call(turn='upgrade'), '')
+
+    def test_guidance_distinguishes_goal_from_steps_and_manual_titles(self):
+        self.seed_confirmed()
+        out = self.call(turn='t2')
+        for rule in ('整段会话主线', '普通补充', '临时支线', '左侧主题对象保持不变', '--lock-title', '--unlock-title'):
+            self.assertIn(rule, out)
 
 
 if __name__ == '__main__':
