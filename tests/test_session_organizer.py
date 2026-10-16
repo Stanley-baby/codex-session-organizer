@@ -294,5 +294,87 @@ class AdaptiveTitleTests(HookFixture):
         self.assertNotIn('改措辞、修复、测试、交付步骤和临时支线不触发改名', out)
 
 
+class InitialNamingTests(HookFixture):
+    def context(self, turn='t1'):
+        return json.loads(self.call(turn=turn))['hookSpecificOutput']['additionalContext']
+
+    def test_first_naming_is_not_conditional_on_goal_change(self):
+        out = self.context()
+        self.assertIn('首次命名：', out)
+        self.assertIn('不以目标变化为前提', out)
+        self.assertNotIn('未发生目标变化时不调用改名工具', out)
+        self.assertNotIn('只要仍在推进原目标，就保持标题', out)
+
+    def test_null_managed_title_is_not_manual_title_evidence(self):
+        out = self.context()
+        self.assertIn('默认标题与空自动标题的差异不构成手动改名证据', out)
+        self.assertNotIn('先将侧栏当前标题与上次确认的自动标题比较', out)
+        self.assertIn('尊重用户明确指定或手动修改的标题', out)
+
+    def test_unfinished_initial_naming_is_retried_in_later_turn(self):
+        self.call(); self.snapshot(title='修复应用无法打开')
+        out = self.context(turn='t2')
+        self.assertIn('首次命名：', out)
+        self.assertNotIn('title_preserved', self.state())
+        self.snapshot(title='修复应用无法打开')
+        self.tool('set_thread_title', {'title': '应用｜恢复正常启动'})
+        self.snapshot(title='应用｜恢复正常启动')
+        self.assertTrue(self.state()['title_done'])
+        out = self.context(turn='t3')
+        self.assertIn('后续目标校准：', out)
+        self.assertNotIn('首次命名：', out)
+        self.assertIn('未发生目标变化时不调用改名工具', out)
+
+    def test_protected_title_with_unfinished_section_is_not_initial_naming(self):
+        self.call()
+        (self.root / (SID + '.json')).write_text(json.dumps({
+            'title_done': True, 'title_preserved': True, 'section_done': False}))
+        out = self.context(turn='t2')
+        self.assertIn('标题已保护，不执行首次命名或自动目标校准', out)
+        self.assertNotIn('首次命名：', out)
+        self.assertNotIn('后续目标校准：', out)
+        self.assertIn('--unlock-title', out)
+
+    def test_successful_move_with_wrong_item_key_remains_pending(self):
+        self.call(); self.snapshot(title='应用｜恢复启动')
+        self.tool('move_thread_to_sidebar_section', {'threadId': SID, 'sectionId': 'dev'})
+        response = {'threads': [{'id': SID, 'kind': 'codex', 'title': '应用｜恢复启动'}],
+                    'sections': [{'sectionId': 'dev', 'itemKeys': ['codex:thread:local:client-new-thread:sample']}]}
+        self.tool('list_threads', response=response)
+        self.assertFalse(self.state().get('section_done'))
+        self.assertEqual(self.state()['pending_section'], 'dev')
+        self.assertIsNone(self.state()['last_section'])
+
+    def alias_snapshot(self, bound_id):
+        self.call(); self.snapshot()
+        self.tool('move_thread_to_sidebar_section', {'threadId': SID, 'sectionId': 'dev'})
+        (self.home / '.codex-global-state.json').write_text(json.dumps({
+            'electron-persisted-atom-state': {'client-thread-bindings-v1': {'client-new-thread:sample': bound_id}}}))
+        self.tool('list_threads', response={
+            'threads': [{'id': SID, 'kind': 'codex', 'title': '默认标题', 'hostId': 'local'}],
+            'sections': [{'sectionId': 'dev', 'itemKeys': ['codex:thread:local:client-new-thread:sample']}]})
+
+    def test_section_alias_bound_to_current_thread_confirms_move(self):
+        self.alias_snapshot(SID)
+        self.assertTrue(self.state().get('section_done'))
+        self.assertEqual(self.state()['managed_section'], 'dev')
+        self.assertNotIn('pending_section', self.state())
+
+    def test_section_alias_bound_to_other_thread_remains_pending(self):
+        self.alias_snapshot(OTHER)
+        self.assertFalse(self.state().get('section_done'))
+        self.assertEqual(self.state()['pending_section'], 'dev')
+
+    def test_malformed_alias_file_keeps_section_pending(self):
+        self.call(); self.snapshot()
+        self.tool('move_thread_to_sidebar_section', {'threadId': SID, 'sectionId': 'dev'})
+        (self.home / '.codex-global-state.json').write_text('not JSON')
+        self.tool('list_threads', response={
+            'threads': [{'id': SID, 'kind': 'codex', 'title': '默认标题'}],
+            'sections': [{'sectionId': 'dev', 'itemKeys': ['codex:thread:local:client-new-thread:sample']}]})
+        self.assertFalse(self.state().get('section_done'))
+        self.assertEqual(self.state()['pending_section'], 'dev')
+
+
 if __name__ == '__main__':
     unittest.main()

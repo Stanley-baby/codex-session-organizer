@@ -39,7 +39,7 @@ sh scripts/python.sh scripts/manage.py resume
 
 ```sh
 codex plugin marketplace remove codex-session-organizer
-codex plugin marketplace add Stanley-baby/codex-session-organizer --ref v0.2.1
+codex plugin marketplace add Stanley-baby/codex-session-organizer --ref v0.2.2
 codex plugin add codex-session-organizer@codex-session-organizer
 ```
 
@@ -82,7 +82,7 @@ codex plugin marketplace remove codex-session-organizer
 
 ## 支持范围
 
-| 项目 | v0.2.1 |
+| 项目 | v0.2.2 |
 | --- | --- |
 | 平台 | macOS Codex 桌面端 |
 | 前提 | 支持插件 Hooks，并暴露原生会话/侧栏管理工具 |
@@ -103,7 +103,7 @@ codex plugin marketplace remove codex-session-organizer
 | `doctor` 通过但侧栏未变 | 本地检查不覆盖运行时信任/工具；请在桌面新会话检查原生工具并回读 |
 | 环境没有 Python | 安装 Python 3.9+，让桌面应用可找到解释器，保存工作后重开应用 |
 | 只有命名，未完成分区 | 分区 ID 是否仍有效；已有项目分区/置顶会被保留；歧义时保留普通列表 |
-| 暂时未命名 | 问候、澄清、等待材料时暂缓；先完成实质任务 |
+| 暂时未命名 | 问候、澄清、等待材料时暂缓；实质任务后仍未命名，检查是否调用改名工具；v0.2.2 已分开首次命名与后续校准规则 |
 | 再次初始化后旧会话没变化 | 这是设计行为；首次接管时间及已完成状态不会重置 |
 | 检测到旧版冲突 | 按迁移段落处理旧版 Hook；脚本不会擅自改用户配置 |
 
@@ -112,9 +112,13 @@ codex plugin marketplace remove codex-session-organizer
 - UUIDv7 提供新会话创建时间；其他 ID 格式会被跳过，设备时间应正确。分叉/导入若获得新的 UUIDv7，也按新 ID 时间处理。
 - 模型生成的标题、分类可能需要用户纠正；24 字为提示目标，不是字符串截断规则。
 - 第一次侧栏观察之前发生的手动改名，可能没有机器标记；用户明确指定的名称优先，插件不能识别所有 UI 修改竞态。
-- 当前观察按本地 `codex:thread:local:` 侧栏键匹配；远程主机会话不在本版验收范围。
+- 当前观察按本地 `codex:thread:local:` 侧栏键匹配。部分桌面版本保留 `client-new-thread:` 临时键；v0.2.2 只读本机明确的临时 ID → 正式 ID 绑定进行匹配。绑定不可用时继续等待确认，不猜测归属；远程主机会话不在本版验收范围。
 - Hook 不是所有工具路径的完整覆盖；只有原生回读匹配才标记完成。未回读/失败不会宣称成功，也不无限重试。
 - 分区被删除或重命名后，请重新运行设置技能更新映射。
+
+## 首次命名与后续校准
+
+v0.2.2 明确区分两个阶段：首次命名在完成首个实质任务后执行，不要求目标先发生变化；已有默认标题与空自动标题记录不构成手动改名证据。首次未完成的会话，下次实质任务完成后继续尝试；明确指定或已观察到的手动标题仍优先保护。首次回读确认后才进入后续校准。
 
 ## 持续目标校准
 

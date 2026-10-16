@@ -4,6 +4,8 @@
 
 Hook 从 Codex 接收事件 JSON，仅读取管理所需的会话 ID、轮次 ID、工具名、工具参数和侧栏回读结果。脚本不会主动读取聊天记录文件，也不保存用户提示词或回答正文。
 
+为识别桌面侧栏仍保留的临时会话 ID，脚本在侧栏回读时还会只读 `${CODEX_HOME:-$HOME/.codex}/.codex-global-state.json`，仅使用其中 `electron-persisted-atom-state.client-thread-bindings-v1` 的明确 ID 绑定。不会修改该文件，不保存或转发其余内容；文件缺失或格式异常时忽略绑定，保留未确认状态。
+
 本机状态目录为 `${CODEX_HOME:-$HOME/.codex}/state/codex-session-organizer/`：
 
 - `settings.json`：首次接管时间、启用状态、分区名称/ID/归属说明。

@@ -1,6 +1,6 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="1200" height="300" viewBox="0 0 1200 300" role="img" aria-labelledby="title desc">
   <title id="title">每轮判断，必要时更新</title>
-  <desc id="desc">工作流：每轮读取当前状态，完成用户实质任务后，仅长期目标发生实质变化时更新标题右侧，侧栏回读吻合后记录完成。工具返回成功本身不足以确认完成。</desc>
+  <desc id="desc">工作流：每轮读取当前状态，完成用户实质任务后，首次命名；之后仅长期目标发生实质变化时更新标题右侧，侧栏回读吻合后记录完成。工具返回成功本身不足以确认完成。</desc>
   <rect x="1" y="1" width="1198" height="298" rx="24" fill="#F3F6EF" stroke="#B6C4BA" stroke-width="2"/>
   <g font-family="-apple-system, BlinkMacSystemFont, Segoe UI, PingFang SC, sans-serif">
     <text x="64" y="65" font-size="36" font-weight="600" fill="#14251E">每轮判断，必要时更新。</text>
@@ -10,7 +10,7 @@
       <text x="350" y="137" font-size="24" fill="#476450">02</text>
       <text x="350" y="183" font-size="32" font-weight="550">完成用户任务</text>
       <text x="650" y="137" font-size="24" fill="#476450">03</text>
-      <text x="650" y="183" font-size="32" font-weight="550">必要时改目标</text>
+      <text x="650" y="183" font-size="32" font-weight="550">命名或校准</text>
       <text x="956" y="137" font-size="24" fill="#476450">04</text>
       <text x="956" y="183" font-size="32" font-weight="550">回读确认</text>
     </g>

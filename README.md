@@ -8,7 +8,7 @@
 
 **macOS 桌面端** · **Python 3.9+** · **MIT 开源** · **本地状态，无额外 API Key**
 
-[安装](#安装) · [工作原理](#工作原理) · [使用指南](docs/usage.md) · [v0.2.1 下载](https://github.com/Stanley-baby/codex-session-organizer/releases/tag/v0.2.1)
+[安装](#安装) · [工作原理](#工作原理) · [使用指南](docs/usage.md) · [v0.2.2 下载](https://github.com/Stanley-baby/codex-session-organizer/releases/tag/v0.2.2)
 
 ## 效果示例
 
@@ -31,11 +31,11 @@
 ### 1. 安装插件
 
 ```sh
-codex plugin marketplace add Stanley-baby/codex-session-organizer --ref v0.2.1
+codex plugin marketplace add Stanley-baby/codex-session-organizer --ref v0.2.2
 codex plugin add codex-session-organizer@codex-session-organizer
 ```
 
-通过 GitHub marketplace 分发，固定到 `v0.2.1` 以便复现；不是官方公共插件目录的已审核上架项目。已有旧版安装请先看[更新步骤](docs/usage.md#更新)。
+通过 GitHub marketplace 分发，固定到 `v0.2.2` 以便复现；不是官方公共插件目录的已审核上架项目。已有旧版安装请先看[更新步骤](docs/usage.md#更新)。
 
 ### 2. 设置分区，审核 Hooks
 
@@ -56,7 +56,7 @@ codex plugin add codex-session-organizer@codex-session-organizer
 
 初始化会话不在接管范围，请另开一个新会话，**直接在输入框发送**：
 
-1. 「给我三条 Codex 多会话管理建议，每条不超过 20 字。」任务完成后，查看标题与分区。
+1. 「给我三条 Codex 多会话管理建议，每条不超过 20 字。」不额外要求改名；任务完成后，确认首次标题符合“主题对象｜持续目标”，并查看分区。首次命名无需先发生目标变化。
 2. 在同一会话追问：「把第一条改得更口语化，其他保持不变。」确认标题与分区保持不变。
 
 3. 明确补充：「目标改为给团队交付一份可长期维护的会话管理规范，不再只是个人建议；请给出规范初稿。」完成后核对左侧主题对象不变、右侧目标反映新主线，分区不变。
@@ -66,11 +66,12 @@ codex plugin add codex-session-organizer@codex-session-organizer
 ## 工作原理
 
 <p align="center">
-  <img src="./assets/readme/workflow.svg" width="100%" alt="每轮读取当前状态 → 完成用户任务 → 仅长期目标变化时更新右侧 → 侧栏回读确认。">
+  <img src="./assets/readme/workflow.svg" width="100%" alt="每轮读取当前状态 → 完成用户任务 → 首次命名或后续目标校准 → 侧栏回读确认。">
 </p>
 
-**每轮评估 → 完成用户任务 → 必要时更新目标 → 回读记账。** Hook 提供规则，模型判断语义，原生工具执行；侧栏回读吻合后才记录成功。
+**每轮评估 → 完成用户任务 → 首次命名 / 后续校准 → 回读记账。** Hook 提供规则，模型判断语义，原生工具执行；侧栏回读吻合后才记录成功。
 
+- **首次命名**：首次自动标题尚未确认时，按会话结果命名；不会因目标未变化或默认标题与空记录不同而跳过。用户明确指定及已观察到手动修改的标题仍受保护。
 - **稳定校准**：结合会话主线与用户已明确或认可的目标；只要仍在服务原目标，就保持标题。新主线有明确依据、旧标题已明显失真才更新右侧，不要求固定口令。修复、测试可以是核心目标，也可以是推进步骤，不按动词机械判断；左侧主题对象保持不变。
 - **分区独立**：分区仍为一次确认，不随每轮目标变化来回移动。标题更新先读取当前侧栏，同轮回读吻合才确认；每轮最多确认一次，失败不循环重试。
 - **保留人为选择**：已观察到的手动改名和用户明确指定的标题受保护；只有用户明确要求才恢复自动校准。保留自定义分区、项目分区与置顶。
@@ -103,9 +104,9 @@ codex plugin remove codex-session-organizer@codex-session-organizer
 
 ## 支持范围
 
-`v0.2.1` 为公开测试版，面向 **macOS Codex 桌面端**。受测客户端为 codex-cli `0.162.0-alpha.17.2`；Windows、Linux、远程主机及 CLI 内的侧栏整理尚未验收。
+`v0.2.2` 为公开测试版，面向 **macOS Codex 桌面端**。受测客户端为 codex-cli `0.162.0-alpha.17.2`；Windows、Linux、远程主机及 CLI 内的侧栏整理尚未验收。
 
-目标变化的语义判断、命名与分类由模型完成，不是确定性强制规则；24 字是提示目标。每轮会增加管理上下文与必要的侧栏读取，不另接模型服务。第一次侧栏观察前的手动改名可能没有机器标记；缺少原生工具时跳过整理，正常用户任务继续。[完整兼容性说明](docs/usage.md#支持范围) · [故障排查与已知边界](docs/usage.md#故障排查)。
+侧栏临时 ID 仅在本机存在明确绑定时解析；绑定缺失、工具失败或回读不匹配时不记为完成。目标变化的语义判断、命名与分类由模型完成，不是确定性强制规则；24 字是提示目标。每轮会增加管理上下文与必要的侧栏读取，不另接模型服务。第一次侧栏观察前的手动改名可能没有机器标记；缺少原生工具时跳过整理，正常用户任务继续。[完整兼容性说明](docs/usage.md#支持范围) · [故障排查与已知边界](docs/usage.md#故障排查)。
 
 **验证记录**：新增动态目标、手动保护、同轮回读及旧状态兼容测试；结果导向的新增测试核验规则文本，不代表模型语义效果已通过新版真实桌面验收。具体数量、隔离安装结果与真实桌面验收边界见验证说明。每位用户仍需完成自己环境的三轮真实输入验收。[验证说明](docs/verification.md) · [自动测试](https://github.com/Stanley-baby/codex-session-organizer/actions)。
 
