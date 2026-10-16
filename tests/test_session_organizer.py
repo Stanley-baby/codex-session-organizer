@@ -157,6 +157,71 @@ class HookTests(HookFixture):
         self.assertEqual((self.root / (SID + '.json')).stat().st_mode & 0o777, 0o600)
 
 
+class ExistingSessionTests(HookFixture):
+    def setUp(self):
+        super().setUp()
+        self.settings.update(manage_existing=True, installed_at_ms=1800000000001,
+                             excluded_session_ids=[SID])
+        self.write_settings()
+
+    def test_resumed_old_session_enrolls_without_resetting_cutoff(self):
+        before = (self.root / 'settings.json').read_bytes()
+        self.assertIn('已续聊的历史 Codex 会话', self.call())
+        self.assertTrue(self.state()['resumed_existing'])
+        self.assertEqual(before, (self.root / 'settings.json').read_bytes())
+        self.assertFalse((self.root / (OTHER + '.json')).exists())
+
+    def test_old_session_does_not_enroll_from_opening_tools_or_actions(self):
+        for event in ('SessionStart', 'PostToolUse', 'Stop'):
+            self.assertEqual(self.call(event), '')
+            self.assertFalse((self.root / (SID + '.json')).exists())
+        self.assertEqual(self.call(turn=None), '')
+        result = subprocess.run([sys.executable, str(SCRIPT), '--lock-title', SID],
+                                env={**os.environ, 'CODEX_HOME': str(self.home)}, capture_output=True)
+        self.assertEqual(result.returncode, 0)
+        self.assertFalse((self.root / (SID + '.json')).exists())
+
+    def test_old_session_readback_and_goal_calibration(self):
+        self.call(); self.snapshot()
+        self.tool('set_thread_title', {'title': '插件｜个人配置'})
+        self.tool('move_thread_to_sidebar_section', {'threadId': SID, 'sectionId': 'dev'})
+        self.snapshot(title='插件｜个人配置', section='dev')
+        self.assertTrue(self.state()['title_done'])
+        self.assertTrue(self.state()['section_done'])
+        self.assertIn('后续目标校准', self.call(turn='t2'))
+        self.snapshot(title='插件｜个人配置', section='dev')
+        self.tool('set_thread_title', {'title': '插件｜开源交付'})
+        self.snapshot(title='插件｜开源交付', section='dev')
+        self.assertEqual(self.state()['managed_title'], '插件｜开源交付')
+        self.assertEqual(self.state()['managed_section'], 'dev')
+
+    def test_disabling_existing_policy_stops_enrolled_old_sessions(self):
+        self.call()
+        before = (self.root / (SID + '.json')).read_bytes()
+        self.settings['manage_existing'] = False; self.write_settings()
+        self.assertEqual(self.call(turn='t2'), '')
+        self.assertEqual(before, (self.root / (SID + '.json')).read_bytes())
+
+    def test_old_manual_title_and_pinned_section_stay_protected(self):
+        (self.root / (SID + '.json')).write_text(json.dumps({
+            'title_done': True, 'title_preserved': True, 'section_done': True}))
+        self.assertIn('标题已保护', self.call())
+        self.snapshot(title='我的标题', pinned=True)
+        self.tool('set_thread_title', {'title': '插件｜其他目标'})
+        self.assertTrue(self.state()['title_preserved'])
+        self.assertNotIn('pending_title', self.state())
+
+    def test_opt_in_does_not_accept_chatgpt_or_non_boolean_policy(self):
+        self.assertEqual(self.call(sid='00000000-0000-8000-8000-000000000001'), '')
+        self.settings['manage_existing'] = 'true'; self.write_settings()
+        self.assertEqual(self.call(), '')
+
+    def test_old_wrong_turn_tool_does_not_confirm_title(self):
+        self.call(); self.snapshot()
+        self.tool('set_thread_title', {'title': '插件｜个人配置'}, turn='wrong')
+        self.assertNotIn('pending_title', self.state())
+
+
 class AdaptiveTitleTests(HookFixture):
     def seed_confirmed(self):
         self.call(); self.snapshot()

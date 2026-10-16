@@ -29,9 +29,19 @@ sh scripts/python.sh scripts/manage.py resume
 }
 ```
 
-配置保存在 `${CODEX_HOME:-$HOME/.codex}/state/codex-session-organizer/settings.json`，同目录每个新会话一个状态文件。首次写入目录权限 700、文件权限 600。不要把整个状态目录提交到仓库。
+配置保存在 `${CODEX_HOME:-$HOME/.codex}/state/codex-session-organizer/settings.json`，同目录每个已接管会话一个状态文件。首次写入目录权限 700、文件权限 600。不要把整个状态目录提交到仓库。
 
 为跨版本保留“已整理”状态，数据使用上述固定目录，而不是版本化的插件缓存。卸载/重装和升级时保留此目录；删除它再初始化会重设接管边界。脚本尊重 `CODEX_HOME`，便于隔离测试。
+
+## 旧 Codex 会话续聊整理
+
+`manage_existing` 是可选布尔值，默认关闭；在上面的映射 JSON 顶层加入 `"manage_existing": true`，保留现有 sections 后再次 `init` 即可开启。仅使用真正的 JSON `true` / `false`，不使用字符串。再次初始化省略此字段会保留原选择，设置 `false` 会停止旧会话整理。暂停整个插件仍使用 `pause`。
+
+开启保留原 `installed_at_ms` 和历史排除列表，不遍历或创建历史会话状态。旧会话首次收到有轮次 ID 的 `UserPromptSubmit` 后接入；只打开会话、后台工具或本地控制命令不会首次接管。问候、澄清仍按原规则暂缓，完成实质任务后才命名/分区。接管后只跟踪当前会话和同轮工具回读，不改其他旧会话。
+
+明确指定和已观察到的手动标题、已完成状态、自定义/项目分区与置顶继续保留。首次观察之前的手动标题没有完整标记，重要名称请先明确要求保留。关闭旧会话选项不会撤销侧栏修改或删除状态；重新开启仍复用已有记录。
+
+验收：选择一个初始化之前的 Codex 会话，直接输入实质任务，确认完成后命名与原生回读；再普通追问，确认标题不动；再明确改变主线，确认只更新右侧。检查未续聊的其他历史会话保持不变，置顶/项目归属仍保留。此流程需用户真实输入，合成事件不替代验收。
 
 ## 更新
 
@@ -39,7 +49,7 @@ sh scripts/python.sh scripts/manage.py resume
 
 ```sh
 codex plugin marketplace remove codex-session-organizer
-codex plugin marketplace add Stanley-baby/codex-session-organizer --ref v0.2.2
+codex plugin marketplace add Stanley-baby/codex-session-organizer --ref v0.3.0-rc.1
 codex plugin add codex-session-organizer@codex-session-organizer
 ```
 
@@ -82,14 +92,18 @@ codex plugin marketplace remove codex-session-organizer
 
 ## 支持范围
 
-| 项目 | v0.2.2 |
+| 项目 | v0.3.0-rc.1 |
 | --- | --- |
 | 平台 | macOS Codex 桌面端 |
+| 旧 Codex 会话 | 用户明确开启后，续聊接入；默认不接管 |
+| ChatGPT 会话 | 不提供逐轮自动整理，真实续聊未触发本地命令 Hook |
 | 前提 | 支持插件 Hooks，并暴露原生会话/侧栏管理工具 |
 | 命令行安装工具 | `codex plugin marketplace add`、`codex plugin add` |
 | Python | 3.9+；自动从 PATH 和常见 macOS 路径查找 |
 | 已验证客户端 | codex-cli `0.162.0-alpha.17.2`；详情见 [验证说明](verification.md) |
 | Windows / Linux / CLI 内的侧栏整理 | 尚未验收，不作为本版支持能力 |
+
+官方 Hooks 文档说明，云端编排不支持来自本地配置或插件的命令 Hook，即使工具在本机执行；本地编排的 Codex / Work 路径另行适用。ChatGPT 真实续聊结果及同入口限制见[验证说明](verification.md#chatgpt-真实触发验证)与[官方文档](https://learn.chatgpt.com/docs/hooks)。
 
 这不是独立的聊天列表应用。原生工具缺失时，正常用户任务继续，整理要求被跳过。本项目与 OpenAI 无隶属关系。
 
@@ -99,12 +113,13 @@ codex plugin marketplace remove codex-session-organizer
 
 | 现象 | 检查项 |
 | --- | --- |
-| 安装后没有动作 | 是否完成初始化；两个 Hook 是否被信任；是否新建于初始化之后；是否直接输入实质任务 |
+| 安装后没有动作 | 是否完成初始化；两个 Hook 是否被信任；是否新建于初始化之后或已开启旧会话整理；是否直接输入实质任务 |
 | `doctor` 通过但侧栏未变 | 本地检查不覆盖运行时信任/工具；请在桌面新会话检查原生工具并回读 |
 | 环境没有 Python | 安装 Python 3.9+，让桌面应用可找到解释器，保存工作后重开应用 |
 | 只有命名，未完成分区 | 分区 ID 是否仍有效；已有项目分区/置顶会被保留；歧义时保留普通列表 |
 | 暂时未命名 | 问候、澄清、等待材料时暂缓；实质任务后仍未命名，检查是否调用改名工具；v0.2.2 已分开首次命名与后续校准规则 |
-| 再次初始化后旧会话没变化 | 这是设计行为；首次接管时间及已完成状态不会重置 |
+| 再次初始化后旧会话没变化 | 默认不接管旧会话；明确开启 manage_existing 后需直接续聊，初始化本身不改历史 |
+| ChatGPT 续聊不生效 | 本地命令 Hook 没有该入口的真实触发，不属于本版逐轮自动整理支持范围 |
 | 检测到旧版冲突 | 按迁移段落处理旧版 Hook；脚本不会擅自改用户配置 |
 
 ### 已知边界
@@ -130,7 +145,7 @@ v0.2.2 明确区分两个阶段：首次命名在完成首个实质任务后执�
 
 自然转向验收示例：在个人会话管理建议的会话中继续说“我们要让整个团队都用这套办法，请给出统一命名、责任分工和交接记录的协作规范”。检查模型是否依据会话判断新主线，而非依赖“目标改变”口令；随后要求改措辞，应保持新标题。这是建议验收步骤，不是已通过的语义测试记录。
 
-升级复用 v0.1.0 的 `managed_title` 与完成状态，不清空数据、不重置首次接管时间。已有自动管理的会话在后续直接输入时参与校准；历史排除与已保护标题继续生效。
+升级复用 v0.1.0 的 `managed_title` 与完成状态，不清空数据、不重置首次接管时间。已有自动管理的会话在后续直接输入时参与校准；历史排除默认继续生效，只有明确开启旧会话整理后才在续聊时接入；已保护标题始终继续保留。
 
 手动改名与明确指定标题优先。设置技能可先回读当前侧栏，再通过 `scripts/session_organizer.py --lock-title <会话ID>` 保护标题；只有用户明确要求恢复时，回读一个“主题对象｜持续目标”格式的标题，再运行 `--unlock-title <会话ID>`。脚本仍通过 `sh scripts/python.sh ...` 启动。
 

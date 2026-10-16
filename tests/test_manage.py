@@ -73,6 +73,25 @@ class ManageTests(unittest.TestCase):
         self.manage('resume')
         self.assertIn('additionalContext', self.hook(value))
 
+    def test_existing_policy_is_explicit_and_preserved_on_reinitialize(self):
+        self.manage('init')
+        self.assertFalse(self.settings().get('manage_existing', False))
+        cutoff = self.settings()['installed_at_ms']
+        self.manage('init', config={**self.config, 'manage_existing': True})
+        self.assertTrue(self.settings()['manage_existing'])
+        self.manage('init')
+        self.assertTrue(self.settings()['manage_existing'])
+        self.assertEqual(self.settings()['installed_at_ms'], cutoff)
+        self.manage('init', config={**self.config, 'manage_existing': False})
+        self.assertFalse(self.settings()['manage_existing'])
+
+    def test_invalid_existing_policy_leaves_settings_intact(self):
+        self.manage('init')
+        before = (self.root / 'settings.json').read_bytes()
+        for value in ('true', 1, None, []):
+            self.manage('init', config={**self.config, 'manage_existing': value}, ok=False)
+            self.assertEqual(before, (self.root / 'settings.json').read_bytes())
+
     def test_legacy_conflict_leaves_config_intact(self):
         path = self.home / 'config.toml'
         path.write_text('# BEGIN codex-session-organizer v1\n')
