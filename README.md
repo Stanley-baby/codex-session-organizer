@@ -124,7 +124,7 @@ codex plugin remove codex-session-organizer@codex-session-organizer
 
 侧栏临时 ID 仅在本机存在明确绑定时解析；绑定缺失、工具失败或回读不匹配时不记为完成。目标变化的语义判断、命名与分类由模型完成，不是确定性强制规则；24 字是提示目标。每轮会增加管理上下文与必要的侧栏读取，不另接模型服务。第一次侧栏观察前的手动改名可能没有机器标记；缺少原生工具时跳过整理，正常用户任务继续。[完整兼容性说明](docs/usage.md#支持范围) · [故障排查与已知边界](docs/usage.md#故障排查)。
 
-**验证记录**：本版 70 项隔离自动测试通过；旧会话的选择性接管、状态续用、手动保护和回读逻辑已覆盖，真实旧会话续聊验收仍待完成。v0.2.2 曾完成全新会话的真实首次命名与分区验收，该结果不替代本版旧会话验收。[验证说明](docs/verification.md) · [自动测试](https://github.com/Stanley-baby/codex-session-organizer/actions)。
+**验证记录**：本版 70 项隔离自动测试通过。2026-10-17 已在真实旧 Codex 会话中确认续聊接管、首次自动命名与回读、普通追问标题不变，以及置顶保留；目标转向与手动保护仍待真实验收，不将这些分项结果视为全部通过。v0.2.2 的新会话验收另行保留。[验证说明](docs/verification.md) · [自动测试](https://github.com/Stanley-baby/codex-session-organizer/actions)。
 
 ## 开发与贡献
 
