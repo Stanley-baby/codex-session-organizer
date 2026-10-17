@@ -8,7 +8,7 @@
 
 **macOS 桌面端** · **Python 3.9+** · **MIT 开源** · **本地状态，无额外 API Key**
 
-[安装](#安装) · [工作原理](#工作原理) · [使用指南](docs/usage.md) · [v0.3.0-rc.2 下载](https://github.com/Stanley-baby/codex-session-organizer/releases/tag/v0.3.0-rc.2)
+[安装](#安装) · [工作原理](#工作原理) · [使用指南](docs/usage.md) · [v0.3.0-rc.3 下载](https://github.com/Stanley-baby/codex-session-organizer/releases/tag/v0.3.0-rc.3)
 
 ## 效果示例
 
@@ -24,6 +24,8 @@
 
 上图和表格均为虚构示例。分区名称与归属描述由你决定；标题目标不超过 24 个字符。
 
+本次 `v0.3.0-rc.3` 仅同步打包文档和版本信息，功能代码与 `v0.3.0-rc.2` 相同；已有用户无需为功能更新而重新部署。
+
 ## 安装
 
 需要支持插件 Hooks 和原生侧栏管理工具的 **macOS Codex 桌面端**，以及可运行的 `codex` 命令和 Python 3.9+。
@@ -31,11 +33,11 @@
 ### 1. 安装插件
 
 ```sh
-codex plugin marketplace add Stanley-baby/codex-session-organizer --ref v0.3.0-rc.2
+codex plugin marketplace add Stanley-baby/codex-session-organizer --ref v0.3.0-rc.3
 codex plugin add codex-session-organizer@codex-session-organizer
 ```
 
-通过 GitHub marketplace 分发，固定到 `v0.3.0-rc.2` 以便复现；不是官方公共插件目录的已审核上架项目。已有旧版安装请先看[更新步骤](docs/usage.md#更新)。
+通过 GitHub marketplace 分发，固定到 `v0.3.0-rc.3` 以便复现；不是官方公共插件目录的已审核上架项目。已有旧版安装请先看[更新步骤](docs/usage.md#更新)。
 
 ### 2. 设置分区，审核 Hooks
 
@@ -133,7 +135,7 @@ codex plugin remove codex-session-organizer@codex-session-organizer
 
 ## 支持范围
 
-`v0.3.0-rc.2` 为公开测试版，面向 **macOS Codex 桌面端**。受测客户端为 codex-cli `0.162.0-alpha.17.2`；Windows、Linux、远程主机及 CLI 内的侧栏整理尚未验收。
+`v0.3.0-rc.3` 为公开测试版，面向 **macOS Codex 桌面端**。受测客户端为 codex-cli `0.162.0-alpha.17.2`；Windows、Linux、远程主机及 CLI 内的侧栏整理尚未验收。
 
 侧栏临时 ID 仅在本机存在明确绑定时解析；绑定缺失、工具失败或回读不匹配时不记为完成。目标变化的语义判断、命名与分类由模型完成，不是确定性强制规则；24 字是提示目标。每轮会增加管理上下文与必要的侧栏读取，不另接模型服务。第一次侧栏观察前的手动改名可能没有机器标记；缺少原生工具时跳过整理，正常用户任务继续。[完整兼容性说明](docs/usage.md#支持范围) · [故障排查与已知边界](docs/usage.md#故障排查)。
 

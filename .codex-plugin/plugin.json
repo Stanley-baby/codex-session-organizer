@@ -1,6 +1,6 @@
 {
   "name": "codex-session-organizer",
-  "version": "0.3.0-rc.2",
+  "version": "0.3.0-rc.3",
   "description": "Keep Codex chat titles stable while adapting their goals when the conversation changes.",
   "author": {
     "name": "Stanley-baby"

@@ -64,7 +64,7 @@ Hook 提供的准备命令为 `session_organizer.py --prepare-section <当前会
 
 ```sh
 codex plugin marketplace remove codex-session-organizer
-codex plugin marketplace add Stanley-baby/codex-session-organizer --ref v0.3.0-rc.2
+codex plugin marketplace add Stanley-baby/codex-session-organizer --ref v0.3.0-rc.3
 codex plugin add codex-session-organizer@codex-session-organizer
 ```
 
@@ -107,7 +107,7 @@ codex plugin marketplace remove codex-session-organizer
 
 ## 支持范围
 
-| 项目 | v0.3.0-rc.2 |
+| 项目 | v0.3.0-rc.3 |
 | --- | --- |
 | 平台 | macOS Codex 桌面端 |
 | 旧 Codex 会话 | 用户明确开启后，续聊接入；默认不接管 |
