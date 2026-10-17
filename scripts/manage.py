@@ -25,8 +25,9 @@ def initialize(config):
     rows = config.get('sections') if isinstance(config, dict) else None
     if not isinstance(rows, list) or not 1 <= len(rows) <= 20:
         raise ValueError('sections 必须包含 1–20 个分区。')
-    if 'manage_existing' in config and not isinstance(config['manage_existing'], bool):
-        raise ValueError('manage_existing 必须为 true 或 false。')
+    for field in ('manage_existing', 'auto_create_sections'):
+        if field in config and not isinstance(config[field], bool):
+            raise ValueError(field + ' 必须为 true 或 false。')
     sections, descriptions = {}, {}
     for row in rows:
         if not isinstance(row, dict):
@@ -49,11 +50,13 @@ def initialize(config):
             'enabled': True,
         }
         settings.update(sections=sections, section_descriptions=descriptions)
-        if 'manage_existing' in config:
-            settings['manage_existing'] = config['manage_existing']
+        for field in ('manage_existing', 'auto_create_sections'):
+            if field in config:
+                settings[field] = config[field]
         save_json(path, settings)
     return {'status': 'initialized', 'section_count': len(sections),
             'existing_cutoff_preserved': existed, 'manage_existing': settings.get('manage_existing', False),
+            'auto_create_sections': settings.get('auto_create_sections', False),
             'settings': str(path)}
 
 
@@ -77,6 +80,7 @@ def doctor():
     checks['section_mapping'] = bool(settings.get('sections'))
     return {'local_checks_pass': all(checks.values()), 'checks': checks,
             'manage_existing': settings.get('manage_existing', False),
+            'auto_create_sections': settings.get('auto_create_sections', False),
             'state_directory': str(ROOT), 'python': sys.executable,
             'runtime_checks': '请在 Codex /hooks 确认两个 Hook 已信任；在桌面新会话确认原生命名/分区工具可用。'}
 

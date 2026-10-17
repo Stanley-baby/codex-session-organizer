@@ -1,6 +1,6 @@
 {
   "name": "codex-session-organizer",
-  "version": "0.3.0-rc.1",
+  "version": "0.3.0-rc.2",
   "description": "Keep Codex chat titles stable while adapting their goals when the conversation changes.",
   "author": {
     "name": "Stanley-baby"
@@ -12,7 +12,7 @@
   "hooks": "./hooks/hooks.json",
   "interface": {
     "displayName": "Codex Session Organizer",
-    "shortDescription": "稳定命名，持续校准目标，归入自选分区",
+    "shortDescription": "稳定命名，目标校准，按需新建分组",
     "developerName": "Stanley-baby",
     "category": "Productivity",
     "defaultPrompt": [

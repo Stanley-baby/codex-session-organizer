@@ -15,7 +15,7 @@
     ],
     "PostToolUse": [
       {
-        "matcher": "(list_threads|set_thread_title|move_thread_to_sidebar_section)$",
+        "matcher": "(list_threads|set_thread_title|move_thread_to_sidebar_section|create_sidebar_section)$",
         "hooks": [
           {
             "type": "command",

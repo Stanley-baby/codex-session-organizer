@@ -24,6 +24,7 @@ class PackageTests(unittest.TestCase):
         self.assertEqual(market['plugins'][0]['source']['path'], './')
         hooks = json.loads((ROOT / 'hooks/hooks.json').read_text())['hooks']
         self.assertEqual(set(hooks), {'UserPromptSubmit', 'PostToolUse'})
+        self.assertIn('create_sidebar_section', hooks['PostToolUse'][0]['matcher'])
         for event in hooks.values():
             self.assertEqual(event[0]['hooks'][0]['command'], 'sh "${PLUGIN_ROOT}/hooks/run.sh"')
 

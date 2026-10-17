@@ -92,6 +92,22 @@ class ManageTests(unittest.TestCase):
             self.manage('init', config={**self.config, 'manage_existing': value}, ok=False)
             self.assertEqual(before, (self.root / 'settings.json').read_bytes())
 
+    def test_auto_create_policy_defaults_off_and_preserves_existing_choice(self):
+        self.manage('init')
+        self.assertFalse(self.settings().get('auto_create_sections', False))
+        self.manage('init', config={**self.config, 'auto_create_sections': True})
+        self.manage('init')
+        self.assertTrue(self.settings()['auto_create_sections'])
+        self.manage('init', config={**self.config, 'auto_create_sections': False})
+        self.assertFalse(self.settings()['auto_create_sections'])
+
+    def test_invalid_auto_create_policy_does_not_touch_settings(self):
+        self.manage('init')
+        before = (self.root / 'settings.json').read_bytes()
+        for value in ('true', 1, None, []):
+            self.manage('init', config={**self.config, 'auto_create_sections': value}, ok=False)
+            self.assertEqual(before, (self.root / 'settings.json').read_bytes())
+
     def test_legacy_conflict_leaves_config_intact(self):
         path = self.home / 'config.toml'
         path.write_text('# BEGIN codex-session-organizer v1\n')

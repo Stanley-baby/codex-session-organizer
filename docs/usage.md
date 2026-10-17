@@ -22,6 +22,7 @@ sh scripts/python.sh scripts/manage.py resume
 
 ```json
 {
+  "auto_create_sections": false,
   "sections": [
     {"name": "开发工具", "id": "YOUR_REAL_SECTION_ID", "description": "软件、插件、脚本和开发环境"},
     {"name": "学习研究", "id": "YOUR_OTHER_SECTION_ID", "description": "独立调研、知识学习和阅读笔记"}
@@ -43,13 +44,27 @@ sh scripts/python.sh scripts/manage.py resume
 
 验收：选择一个初始化之前的 Codex 会话，直接输入实质任务，确认完成后命名与原生回读；再普通追问，确认标题不动；再明确改变主线，确认只更新右侧。检查未续聊的其他历史会话保持不变，置顶/项目归属仍保留。此流程需用户真实输入，合成事件不替代验收。
 
+## 自动新建分组
+
+`auto_create_sections` 为可选布尔值，新安装默认关闭。保留当前完整映射，在初始化 JSON 顶层加入 `"auto_create_sections": true` 后执行 `init`；设为 `false` 关闭，省略则保留原选择。`doctor` 显示当前策略。该功能仅覆盖已接通本地 Hook 的 Codex 会话，不代表 ChatGPT 普通会话已接通。
+
+首个实质任务后，先读取真实侧栏；已有合适分区就复用。仅类别清晰、适合未来同类会话且现有分区都不合适时新建，单次事项和歧义保留普通列表。已有完成状态、明确保留普通列表的决定、项目归属和置顶保持；不扫描全部历史，不随每轮追问搬动。
+
+Hook 提供的准备命令为 `session_organizer.py --prepare-section <当前会话ID> <名称> <归属说明>`，仍通过 `sh scripts/python.sh ...` 启动。必须先在同轮原生回读当前未分组本地会话；准备命令返回 `reuse` 或 `create`，后者才授权调用原生创建工具。准备命令本身不创建分区。返回 reuse 后或创建后再次原生回读，Hook 确认唯一名称与真实 ID 后在配置锁内登记，再确认 settings 中 ID 后移动当前会话并回读。仅工具成功、缺失/错误回读、错误轮次或 ID 不足以完成。
+
+每轮最多准备一次，配置上限 20 个。创建成功但移动失败时保留分区，下一轮复用；新轮次会清除过期准备记录，重新读取侧栏。保存失败不直接移动未登记的分区，下轮通过真实侧栏重新登记；不自动删除或合并。旧名称对应 ID 已删除时不自动重建，手动改名的同 ID 可用准备/回读更新映射并保留归属说明。若多个分区同名，或新名称与其他配置冲突，交用户确认。
+
+创建前重读减少重复，文件锁与原子写入防止并发配置覆盖；原生接口没有原子 get-or-create，跨客户端并发创建仍可能重复。这是已知边界，不以文件锁声称原生工具也绝对去重。
+
+真实验收：用户在未分组临时会话直接输入明确新类别任务，确认新建一次、登记、移动及回读；另一个同类会话确认复用，再追问确认稳定。用原生侧栏和本地状态核对，脚本合成事件、准备消息和人工工具调用单独记录，不替代用户输入验收。关闭或回退代码保留已创建分区和会话；用户另选需要清理的测试分组。
+
 ## 更新
 
 先阅读目标版本的 Release Notes。受测 CLI 将不同固定版本标签视为不同安装源，因此切换版本时先移除同名安装源，再重新添加。下面只更换本插件的源，保留固定状态目录；已有安装可执行：
 
 ```sh
 codex plugin marketplace remove codex-session-organizer
-codex plugin marketplace add Stanley-baby/codex-session-organizer --ref v0.3.0-rc.1
+codex plugin marketplace add Stanley-baby/codex-session-organizer --ref v0.3.0-rc.2
 codex plugin add codex-session-organizer@codex-session-organizer
 ```
 
@@ -92,7 +107,7 @@ codex plugin marketplace remove codex-session-organizer
 
 ## 支持范围
 
-| 项目 | v0.3.0-rc.1 |
+| 项目 | v0.3.0-rc.2 |
 | --- | --- |
 | 平台 | macOS Codex 桌面端 |
 | 旧 Codex 会话 | 用户明确开启后，续聊接入；默认不接管 |
@@ -129,7 +144,7 @@ codex plugin marketplace remove codex-session-organizer
 - 第一次侧栏观察之前发生的手动改名，可能没有机器标记；用户明确指定的名称优先，插件不能识别所有 UI 修改竞态。
 - 当前观察按本地 `codex:thread:local:` 侧栏键匹配。部分桌面版本保留 `client-new-thread:` 临时键；v0.2.2 只读本机明确的临时 ID → 正式 ID 绑定进行匹配。绑定不可用时继续等待确认，不猜测归属；远程主机会话不在本版验收范围。
 - Hook 不是所有工具路径的完整覆盖；只有原生回读匹配才标记完成。未回读/失败不会宣称成功，也不无限重试。
-- 分区被删除或重命名后，请重新运行设置技能更新映射。
+- 分区被删除时请重新运行设置技能更新映射；开启自动新建后，同 ID 改名可在准备/回读中登记新名，旧名称缺失不会自动重建。
 
 ## 首次命名与后续校准
 
